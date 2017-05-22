@@ -16,6 +16,8 @@
 #include <pcl/filters/passthrough.h>
 #include <unistd.h>
 
+#include <ParamLoading.h>
+
 using namespace std;
 
 
@@ -26,17 +28,21 @@ void LoadPose(const string &strInFilename, vector<Eigen::Isometry3d> &vCamPoses)
 
 int main(int argc, char** argv)
 {
-	vector<string> vstrImageFilenamesRGB;
-	vector<string> vstrImageFilenamesD;
-	vector<double> vTimestamps;
+	const string strFilePath = "/home/ardell/WorkSpace/Packages/ORB_SLAM2/rgbd_2_fb3";
+	ParamLoading param(strFilePath);
+	param.LoadImages();
+
+	// vector<string> vstrImageFilenamesRGB;
+	// vector<string> vstrImageFilenamesD;
+	// vector<double> vTimestamps;
 
 	vector<Eigen::Isometry3d> vCamPoses;
 
-	string strinFilename = string(argv[1]);
-	string strPoseFileName = string(argv[2]);
+	// string strinFilename = string(argv[1]);
+	// string strPoseFileName = string(argv[2]);
 	//cout << argv[0] << ' ' << argv[1] << endl;
-	LoadImages(strinFilename, vstrImageFilenamesRGB, vstrImageFilenamesD, vTimestamps);
-	LoadPose(strPoseFileName, vCamPoses);
+	//LoadImages(strinFilename, vstrImageFilenamesRGB, vstrImageFilenamesD, vTimestamps);
+	//LoadPose(strPoseFileName, vCamPoses);
 
 	cout << "load successfully!" << endl;
 	// 相机内参
@@ -59,7 +65,7 @@ int main(int argc, char** argv)
 	PointCloud::Ptr pointCloud_passthrough( new PointCloud );
 	pcl::PassThrough<PointT> pass;
 
-	int nImages = vstrImageFilenamesRGB.size();
+	//int nImages = vstrImageFilenamesRGB.size();
 	cv::Mat color, depth;
 
 	cout << "load successfully!" << endl;
@@ -77,11 +83,13 @@ int main(int argc, char** argv)
 	Eigen::Isometry3d T(q);
 	T.pretranslate( Eigen::Vector3d( 0, 0, 0 ));
 	vCamPoses.push_back( T );
-	for (int ii = 0; ii != nImages; ii ++)
+
+	
+	for (int ii = 0; ii != param.nImages; ii ++)
 	{
 		//T = vCamPoses[ii];
-		color = cv::imread(string(argv[3]) + "/" + vstrImageFilenamesRGB[ii], CV_LOAD_IMAGE_UNCHANGED);
-		depth = cv::imread(string(argv[3]) + "/" + vstrImageFilenamesD[ii], CV_LOAD_IMAGE_UNCHANGED);
+		color = cv::imread(strFilePath + "/" + param.vstrImageFilenamesRGB[ii], CV_LOAD_IMAGE_UNCHANGED);
+		depth = cv::imread(strFilePath + "/" + param.vstrImageFilenamesDepth[ii], CV_LOAD_IMAGE_UNCHANGED);
 
 		double xmax = 0, xmin = 0, zmax = 0;
 		for ( int v = 0; v < color.rows; v++ )
