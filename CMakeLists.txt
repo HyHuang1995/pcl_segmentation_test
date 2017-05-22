@@ -24,7 +24,9 @@ ${PROJECT_SOURCE_DIR}/include
 
 add_library(${PROJECT_NAME} SHARED
 src/ParamLoading.cpp
+src/ObjectSegmentation.cpp
 )
+target_link_libraries( ${PROJECT_NAME} ${OpenCV_LIBS} ${PCL_LIBRARIES})
 
 add_executable( segTest main.cpp )
 target_link_libraries( segTest ${OpenCV_LIBS} ${PCL_LIBRARIES} ${PROJECT_NAME})
