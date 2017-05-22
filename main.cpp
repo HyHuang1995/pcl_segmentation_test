@@ -13,6 +13,7 @@
 #include <pcl/visualization/pcl_visualizer.h>
 
 #include <pcl/visualization/cloud_viewer.h>
+#include <pcl/filters/passthrough.h>
 #include <unistd.h>
 
 using namespace std;
@@ -54,7 +55,9 @@ int main(int argc, char** argv)
 	PointCloud::Ptr pointCloud( new PointCloud );
 	pointCloud->is_dense = false;
 
-
+	// pass through
+	PointCloud::Ptr pointCloud_passthrough( new PointCloud );
+	pcl::PassThrough<PointT> pass;
 
 	int nImages = vstrImageFilenamesRGB.size();
 	cv::Mat color, depth;
@@ -68,32 +71,58 @@ int main(int argc, char** argv)
 	PointT p ;
 	Eigen::Vector3d point;
 	Eigen::Vector3d pointWorld;
+	//Eigen::Isometry3d T;
+
+	Eigen::Quaterniond q( 1, 0, 0, 0 );
+	Eigen::Isometry3d T(q);
+	T.pretranslate( Eigen::Vector3d( 0, 0, 0 ));
+	vCamPoses.push_back( T );
 	for (int ii = 0; ii != nImages; ii ++)
 	{
-		Eigen::Isometry3d T = vCamPoses[ii];
+		//T = vCamPoses[ii];
 		color = cv::imread(string(argv[3]) + "/" + vstrImageFilenamesRGB[ii], CV_LOAD_IMAGE_UNCHANGED);
 		depth = cv::imread(string(argv[3]) + "/" + vstrImageFilenamesD[ii], CV_LOAD_IMAGE_UNCHANGED);
 
+		double xmax = 0, xmin = 0, zmax = 0;
 		for ( int v = 0; v < color.rows; v++ )
 			for ( int u = 0; u < color.cols; u++ )
 			{
 				unsigned int d = depth.ptr<unsigned short> ( v )[u]; // 深度值
-				if ( d == 0 ) continue; // 为0表示没有测量到
+				if ( d == 0 || d > 16000) continue; // 为0表示没有测量到
 
 				point[2] = double(d) / depthScale;
 				point[0] = (u - cx) * point[2] / fx;
 				point[1] = (v - cy) * point[2] / fy;
 
-				pointWorld = T*point;
+				pointWorld = T * point;
 
 				p.x = pointWorld[0];
 				p.y = -pointWorld[1];
 				p.z = -pointWorld[2];
+				// if (d > xmax)
+				// 	xmax = d;
+				// if (p.x < xmin)
+				// 	xmin = p.x;
+				
 				p.b = color.data[ v * color.step + u * color.channels() ];
 				p.g = color.data[ v * color.step + u * color.channels() + 1 ];
 				p.r = color.data[ v * color.step + u * color.channels() + 2 ];
 				pointCloud->points.push_back( p );
 			}
+		//cout << xmax << ' '<< xmin << ' ' << zmax << endl;
+
+		// pass.setInputCloud (pointCloud);
+		// pass.setFilterFieldName ("x");
+		// pass.setFilterLimits (-10.0, 10.0);
+		// //pass.setFilterLimitsNegative (true);
+		// pass.filter (*pointCloud_passthrough);
+
+		// pass.setInputCloud (pointCloud_passthrough);
+		// pass.setFilterFieldName ("y");
+		// pass.setFilterLimits (-12.0, 12.0);
+		// //pass.setFilterLimitsNegative (true);
+		// pass.filter (*pointCloud_passthrough);
+
 
 		viewer.showCloud( pointCloud );
 		pointCloud->points.clear();
@@ -152,7 +181,7 @@ void LoadPose(const string &strFilename, vector<Eigen::Isometry3d> &vCamPoses)
 			ss >> qz;
 			ss >> qw;
 
-			Eigen::Quaterniond q( qw, qx, qy, qz );
+			Eigen::Quaterniond q( qw, qx, qy, 0 );
 			Eigen::Isometry3d T(q);
 			T.pretranslate( Eigen::Vector3d( 0, 0, 0 ));
 			vCamPoses.push_back( T );
