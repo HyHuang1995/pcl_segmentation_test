@@ -11,7 +11,9 @@ ObjSeg::ObjSeg(ParamLoading param):
 	T.pretranslate( Eigen::Vector3d( 0, 0, 0 ));
 	viewer = new pcl::visualization::CloudViewer("viewer");
 	pointCloud_raw = PointCloud::Ptr(new PointCloud) ;
+	pointCloud_filtered = PointCloud::Ptr(new PointCloud) ;
 
+	cout << endl;
 	cout << "Object segmentation module constructed!" << endl;
 }
 
@@ -30,7 +32,7 @@ bool ObjSeg::generateCloud(int index)
 	pointCloud_raw->points.clear();
 	color = cv::imread(string(strFilePath + "/" + vstrImageFilenamesRGB[index]), CV_LOAD_IMAGE_UNCHANGED);
 	depth = cv::imread(string(strFilePath + "/" + vstrImageFilenamesDepth[index]), CV_LOAD_IMAGE_UNCHANGED);
-	
+
 	for ( size_t v = 0; v < color.rows; v++ )
 		for ( size_t  u = 0; u < color.cols; u++ )
 		{
@@ -60,4 +62,13 @@ void ObjSeg::showCloud(cloudType type)
 {
 	if (type == RAW)
 		viewer->showCloud(pointCloud_raw);
+	if (type == FILTERED)
+		viewer->showCloud(pointCloud_filtered);
+}
+
+void ObjSeg::filtCloud(float leaveSize)
+{
+	vg.setInputCloud (pointCloud_raw);
+	vg.setLeafSize (leaveSize, leaveSize, leaveSize);
+	vg.filter (*pointCloud_filtered);
 }
