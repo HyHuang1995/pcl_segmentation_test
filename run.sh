@@ -1,0 +1,1 @@
+./build/segTest ~/WorkSpace/Packages/ORB_SLAM2/rgbd_2_fb3/associations.txt ~/WorkSpace/Packages/ORB_SLAM2/rgbd_2_fb3/CameraTrajectory.txt ~/WorkSpace/Packages/ORB_SLAM2/rgbd_2_fb3/
