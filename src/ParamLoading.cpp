@@ -22,7 +22,6 @@ void ParamLoading::LoadImages()
 	if (!fin)
 		cout << "error!" << endl;
 
-	cout << strAssociationFile.c_str() << endl;
 	while (!fin.eof())
 	{
 		string s;

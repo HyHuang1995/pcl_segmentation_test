@@ -1,3 +1,4 @@
+# pragma  once 
 #include <string>
 #include <vector>
 
@@ -6,6 +7,8 @@ using namespace std;
 class ParamLoading
 {
 public:
+	const string strFilePath;
+
 	vector<string> vstrImageFilenamesRGB;
 	vector<string> vstrImageFilenamesDepth;
 	vector<double> vTimestamps;
@@ -16,7 +19,6 @@ public:
 	void LoadPose();
 
 private:
-	string strFilePath;
 	string strAssociationFile;
 	string strRGBPath;
 	string strDepthPath;
