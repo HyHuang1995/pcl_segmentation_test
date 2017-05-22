@@ -10,6 +10,7 @@
 #include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/visualization/cloud_viewer.h>
 #include <pcl/filters/voxel_grid.h>
+#include <pcl/filters/passthrough.h>
 
 #include <pcl/filters/radius_outlier_removal.h>
 #include <pcl/search/search.h>
@@ -23,6 +24,7 @@
 #include <pcl/features/normal_3d.h>
 #include <pcl/ModelCoefficients.h>
 #include <pcl/segmentation/sac_segmentation.h>
+
 
 
 class ObjSeg
@@ -40,20 +42,28 @@ public:
 	void showCloud(cloudType type);
 
 	void filtCloud(float leaveSize = 0.02f);
+	void removePlane();
 private:
 	const string strFilePath;
 	const vector<string> vstrImageFilenamesRGB;
 	const vector<string> vstrImageFilenamesDepth;
-
-	cv::Mat color;
-	cv::Mat depth;
+	const vector<Eigen::Isometry3d> vCamPoses;
 
 	Eigen::Quaterniond q;
 	Eigen::Isometry3d T;
 
+	cv::Mat color;
+	cv::Mat depth;
+
+	pcl::SACSegmentation<PointT> seg;
 	pcl::VoxelGrid<PointT> vg;
+	pcl::PassThrough<PointT> pass;
 
 	pcl::visualization::CloudViewer *viewer;
 	PointCloud::Ptr pointCloud_raw;
 	PointCloud::Ptr pointCloud_filtered;
+	PointCloud::Ptr pointCloud_removal;
+	PointCloud::Ptr pointCloud_cluster;
+
+	pcl::search::KdTree<PointT>::Ptr tree;
 };

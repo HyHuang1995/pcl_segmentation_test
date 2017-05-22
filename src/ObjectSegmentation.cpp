@@ -6,12 +6,18 @@ ObjSeg::ObjSeg(ParamLoading param):
 	strFilePath(param.strFilePath),
 	vstrImageFilenamesRGB(param.vstrImageFilenamesRGB),
 	vstrImageFilenamesDepth(param.vstrImageFilenamesDepth),
-	q(Eigen::Quaterniond( 1, 0, 0, 0 )), T(Eigen::Isometry3d(q))
+	vCamPoses(param.vCamPoses),
+	q(Eigen::Quaterniond(0, 0, 0, 0)), T(Eigen::Isometry3d(q))
 {
 	T.pretranslate( Eigen::Vector3d( 0, 0, 0 ));
 	viewer = new pcl::visualization::CloudViewer("viewer");
 	pointCloud_raw = PointCloud::Ptr(new PointCloud) ;
 	pointCloud_filtered = PointCloud::Ptr(new PointCloud) ;
+	pointCloud_removal = PointCloud::Ptr(new PointCloud) ;
+	pointCloud_cluster = PointCloud::Ptr(new PointCloud) ;
+
+	tree = pcl::search::KdTree<PointT>::Ptr(new pcl::search::KdTree<PointT>);
+
 
 	cout << endl;
 	cout << "Object segmentation module constructed!" << endl;
@@ -26,13 +32,17 @@ bool ObjSeg::generateCloud(int index)
 	static const double depthScale = 1000.0;
 
 	static PointT p ;
+	//static Eigen::Isometry3d T;
 	static Eigen::Vector3d point;
 	static Eigen::Vector3d pointWorld;
+
+	//T = vCamPoses[index];
 
 	pointCloud_raw->points.clear();
 	color = cv::imread(string(strFilePath + "/" + vstrImageFilenamesRGB[index]), CV_LOAD_IMAGE_UNCHANGED);
 	depth = cv::imread(string(strFilePath + "/" + vstrImageFilenamesDepth[index]), CV_LOAD_IMAGE_UNCHANGED);
 
+	//int zmin = 100, zmax = -100;
 	for ( size_t v = 0; v < color.rows; v++ )
 		for ( size_t  u = 0; u < color.cols; u++ )
 		{
@@ -48,12 +58,15 @@ bool ObjSeg::generateCloud(int index)
 			p.x = pointWorld[0];
 			p.y = -pointWorld[1];
 			p.z = -pointWorld[2];
-
+			// if (p.y > zmax) zmax = p.y;
+			// if (p.y < zmin)zmin = p.y;
 			p.b = color.data[ v * color.step + u * color.channels() ];
 			p.g = color.data[ v * color.step + u * color.channels() + 1 ];
 			p.r = color.data[ v * color.step + u * color.channels() + 2 ];
 			pointCloud_raw->points.push_back( p );
 		}
+
+		//cout << zmin << ' ' << zmax << endl;
 
 	return 1;
 }
@@ -68,7 +81,25 @@ void ObjSeg::showCloud(cloudType type)
 
 void ObjSeg::filtCloud(float leaveSize)
 {
+	//voxelgrid filter
 	vg.setInputCloud (pointCloud_raw);
 	vg.setLeafSize (leaveSize, leaveSize, leaveSize);
 	vg.filter (*pointCloud_filtered);
+
+	//pass
+	pass.setInputCloud(pointCloud_filtered);
+	pass.setFilterFieldName("y");
+	pass.setFilterLimits(-1.5, 10);
+	pass.filter(*pointCloud_filtered);
+
+	pass.setInputCloud(pointCloud_filtered);
+	pass.setFilterFieldName("z");
+	pass.setFilterLimits(-13.5, 10);
+
+	pass.filter(*pointCloud_filtered);
+}
+
+void ObjSeg::removePlane()
+{
+
 }

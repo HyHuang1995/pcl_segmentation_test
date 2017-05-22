@@ -20,6 +20,7 @@ int main(int argc, char** argv)
 	const string strFilePath = "/home/ardell/WorkSpace/Packages/ORB_SLAM2/rgbd_2_fb3";
 	ParamLoading param(strFilePath);
 	param.LoadImages();
+	param.LoadPose();
 
 	ObjSeg objSeg(param);
 	
