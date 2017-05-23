@@ -77,9 +77,14 @@ void ParamLoading::LoadPose()
 			ss >> qz;
 			ss >> qw;
 
-			Eigen::Quaterniond q( 0, qx, qy,  qz);
+			static double phi_s = atan2(2*(qw*qz+qx*qy), 1-2*(qy*qy+qz*qz));
+			double phi = atan2(2*(qw*qz+qx*qy), 1-2*(qy*qy+qz*qz));
+			Eigen::Matrix3d m;
+			m = Eigen::AngleAxisd(phi_s-phi, Eigen::Vector3d::UnitZ());
+			Eigen::Quaterniond q( qw, qx, qy,  qz);
 			Eigen::Isometry3d T(q);
 			T.pretranslate( Eigen::Vector3d( 0, 0, 0 ));
+			T = m*T;
 			vCamPoses.push_back( T );
 
 		}

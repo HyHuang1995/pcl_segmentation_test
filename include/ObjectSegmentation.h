@@ -1,6 +1,9 @@
 # pragma  once
 #include "ParamLoading.h"
 
+#include <unistd.h>
+#include <time.h>
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
@@ -41,7 +44,7 @@ public:
 	bool generateCloud(int index);
 	void showCloud(cloudType type);
 
-	void filtCloud(float leaveSize = 0.02f);
+	void filtCloud(float leaveSize = 0.014f);
 	void removePlane();
 private:
 	const string strFilePath;
@@ -56,6 +59,10 @@ private:
 	cv::Mat depth;
 
 	pcl::SACSegmentation<PointT> seg;
+	pcl::PointIndices::Ptr inliers;
+	pcl::ModelCoefficients::Ptr coefficients;
+	pcl::ExtractIndices<PointT> extract;
+
 	pcl::VoxelGrid<PointT> vg;
 	pcl::PassThrough<PointT> pass;
 
@@ -64,6 +71,9 @@ private:
 	PointCloud::Ptr pointCloud_filtered;
 	PointCloud::Ptr pointCloud_removal;
 	PointCloud::Ptr pointCloud_cluster;
+	PointCloud::Ptr pointCloud_plane;
 
 	pcl::search::KdTree<PointT>::Ptr tree;
+
+	void initPlaneSeg();
 };

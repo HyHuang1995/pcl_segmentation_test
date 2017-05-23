@@ -26,10 +26,10 @@ int main(int argc, char** argv)
 	
 	for (int ii = 0; ii != param.nImages; ii ++)
 	{
-		
 		objSeg.generateCloud(ii);
-		objSeg.filtCloud();
-		objSeg.showCloud(objSeg.FILTERED);
+		objSeg.filtCloud(0.01f);
+		objSeg.removePlane();
+		objSeg.showCloud(objSeg.REMOVAL);
 
 		sleep(0.03);
 	}
