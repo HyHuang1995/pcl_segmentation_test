@@ -29,7 +29,8 @@ int main(int argc, char** argv)
 		objSeg.generateCloud(ii);
 		objSeg.filtCloud(0.01f);
 		objSeg.removePlane();
-		objSeg.showCloud(objSeg.REMOVAL);
+		objSeg.cluster();
+		objSeg.showCloud(objSeg.CLUSTER);
 
 		sleep(0.03);
 	}

@@ -18,7 +18,7 @@ ObjSeg::ObjSeg(ParamLoading param):
 	seg.setModelType (pcl::SACMODEL_PLANE);
 	seg.setMethodType (pcl::SAC_RANSAC);
 	seg.setMaxIterations (100);
-	seg.setDistanceThreshold (0.014);
+	seg.setDistanceThreshold (0.017);
 
 	viewer = new pcl::visualization::CloudViewer("viewer");
 	pointCloud_raw = PointCloud::Ptr(new PointCloud) ;
@@ -125,7 +125,7 @@ void ObjSeg::removePlane()
 	do//while (pointCloud_filtered->points.size () > 0.5 * nr_points)
 	{
 		// Segment the largest planar component from the remaining cloud
-		cout << "cloudsize" << pointCloud_filtered->points.size () << endl;
+		//cout << "cloudsize" << pointCloud_filtered->points.size () << endl;
 		seg.setInputCloud (pointCloud_filtered);
 		seg.segment (*inliers, *coefficients);
 		if (inliers->indices.size () == 0)
@@ -142,11 +142,11 @@ void ObjSeg::removePlane()
 
 		// Get the points associated with the planar surface
 		extract.filter (*pointCloud_plane);
-		std::cout << "PointCloud representing the planar component: " << pointCloud_plane->points.size () << " data points." << std::endl;
+		//std::cout << "PointCloud representing the planar component: " << pointCloud_plane->points.size () << " data points." << std::endl;
 
-		viewer->showCloud( pointCloud_plane );
+		//viewer->showCloud( pointCloud_plane );
 		//pointCloud->points.clear();
-		sleep(1);
+		//sleep(1);
 
 		// Remove the planar inliers, extract the rest
 		extract.setNegative (true);
@@ -154,6 +154,36 @@ void ObjSeg::removePlane()
 		*pointCloud_filtered = *pointCloud_removal;
 	} while (pointCloud_plane->points.size () > 2500);
 
+}
+
+void ObjSeg::cluster()
+{
+	tree->setInputCloud (pointCloud_filtered);
+	ec.setClusterTolerance (0.02); // 2cm
+	ec.setMinClusterSize (200);
+	ec.setMaxClusterSize (10000);
+	ec.setSearchMethod (tree);
+	ec.setInputCloud (pointCloud_filtered);
+	ec.extract (cluster_indices);
+
+	for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
+	{
+		// unsigned char r = rand() / 128;
+		// unsigned char g = rand() / 128;
+		// unsigned char b = rand() / 128;
+
+		for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit)
+		{
+			// cloud_filtered->points[*pit].r = r;
+			// cloud_filtered->points[*pit].g = g;
+			// cloud_filtered->points[*pit].b = b;
+			pointCloud_cluster->points.push_back (pointCloud_filtered->points[*pit]); //*
+		}
+		//std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
+	}
+	pointCloud_cluster-> is_dense = true;
+
+	//viewer.showCloud( cloud_cluster );
 }
 
 void ObjSeg::initPlaneSeg()

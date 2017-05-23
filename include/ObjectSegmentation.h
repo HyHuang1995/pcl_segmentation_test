@@ -46,6 +46,7 @@ public:
 
 	void filtCloud(float leaveSize = 0.014f);
 	void removePlane();
+	void cluster();
 private:
 	const string strFilePath;
 	const vector<string> vstrImageFilenamesRGB;
@@ -74,6 +75,8 @@ private:
 	PointCloud::Ptr pointCloud_plane;
 
 	pcl::search::KdTree<PointT>::Ptr tree;
+	std::vector<pcl::PointIndices> cluster_indices;
+	pcl::EuclideanClusterExtraction<PointT> ec;
 
 	void initPlaneSeg();
 };
