@@ -32,7 +32,7 @@ int main(int argc, char** argv)
 		objSeg.cluster();
 		objSeg.showCloud(objSeg.CLUSTER);
 
-		sleep(0.03);
+		//sleep(0.03);
 	}
 
 	getchar();

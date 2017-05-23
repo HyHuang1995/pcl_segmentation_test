@@ -27,8 +27,12 @@ ObjSeg::ObjSeg(ParamLoading param):
 	pointCloud_cluster = PointCloud::Ptr(new PointCloud) ;
 	pointCloud_plane = PointCloud::Ptr(new PointCloud);
 
-	tree = pcl::search::KdTree<PointT>::Ptr(new pcl::search::KdTree<PointT>);
+	//tree = pcl::search::KdTree<PointT>::Ptr(new pcl::search::KdTree<PointT>);
 
+	srand((unsigned)time(NULL));
+	for (size_t ii = 0; ii < 20; ii++)
+		for (size_t jj = 0; jj < 3; jj++)
+			colorForCluster[ii][jj] = rand() / 128;
 
 	cout << endl;
 	cout << "Object segmentation module constructed!" << endl;
@@ -93,6 +97,8 @@ void ObjSeg::showCloud(cloudType type)
 	}
 	if (type == REMOVAL)
 		viewer->showCloud(pointCloud_removal);
+	if (type == CLUSTER)
+		viewer->showCloud(pointCloud_cluster);
 }
 
 void ObjSeg::filtCloud(float leaveSize)
@@ -119,7 +125,7 @@ void ObjSeg::removePlane()
 {
 	int nr_points = pointCloud_filtered->points.size();
 	//*pointCloud_removal = *pointCloud_filtered;
-	viewer->showCloud(pointCloud_removal);
+	//viewer->showCloud(pointCloud_removal);
 	sleep(1);
 	cout << "nrpoints" << nr_points << endl;
 	do//while (pointCloud_filtered->points.size () > 0.5 * nr_points)
@@ -158,7 +164,13 @@ void ObjSeg::removePlane()
 
 void ObjSeg::cluster()
 {
+	pointCloud_cluster->points.clear();
+
+	pcl::search::KdTree<PointT>::Ptr tree (new pcl::search::KdTree<PointT>);
 	tree->setInputCloud (pointCloud_filtered);
+
+	std::vector<pcl::PointIndices> cluster_indices;
+	pcl::EuclideanClusterExtraction<PointT> ec;
 	ec.setClusterTolerance (0.02); // 2cm
 	ec.setMinClusterSize (200);
 	ec.setMaxClusterSize (10000);
@@ -166,6 +178,9 @@ void ObjSeg::cluster()
 	ec.setInputCloud (pointCloud_filtered);
 	ec.extract (cluster_indices);
 
+	cout << "extract end!" << endl;
+
+	int j = 0;
 	for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
 	{
 		// unsigned char r = rand() / 128;
@@ -174,11 +189,13 @@ void ObjSeg::cluster()
 
 		for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit)
 		{
-			// cloud_filtered->points[*pit].r = r;
-			// cloud_filtered->points[*pit].g = g;
-			// cloud_filtered->points[*pit].b = b;
+			pointCloud_filtered->points[*pit].r = colorForCluster[j][0];
+			pointCloud_filtered->points[*pit].g = colorForCluster[j][1];
+			pointCloud_filtered->points[*pit].b = colorForCluster[j][2];
 			pointCloud_cluster->points.push_back (pointCloud_filtered->points[*pit]); //*
 		}
+		if (j++ > 15) break;
+
 		//std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
 	}
 	pointCloud_cluster-> is_dense = true;

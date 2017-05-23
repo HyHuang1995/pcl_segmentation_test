@@ -74,9 +74,11 @@ private:
 	PointCloud::Ptr pointCloud_cluster;
 	PointCloud::Ptr pointCloud_plane;
 
-	pcl::search::KdTree<PointT>::Ptr tree;
-	std::vector<pcl::PointIndices> cluster_indices;
-	pcl::EuclideanClusterExtraction<PointT> ec;
+	//pcl::search::KdTree<PointT>::Ptr tree;
+	//std::vector<pcl::PointIndices> cluster_indices;
+	//pcl::EuclideanClusterExtraction<PointT> ec;
+
+	int colorForCluster[20][3];
 
 	void initPlaneSeg();
 };
